@@ -19,8 +19,10 @@ import { AdminModule } from './admin/admin.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
+import { SystemController } from './system.controller';
 
 @Module({
+  controllers: [SystemController],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
