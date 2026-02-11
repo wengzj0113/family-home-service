@@ -18,7 +18,7 @@
     </div>
 
     <!-- 底部 TabBar -->
-    <div class="tab-bar">
+    <div v-if="!hideTabBar" class="tab-bar">
       <router-link to="/" class="tab-item" active-class="active">
         <i class="ri-home-5-line"></i>
         <span>首页</span>
@@ -43,11 +43,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import api from './api'
 
 const unreadCount = ref(0)
 let timer = null
+const route = useRoute()
+const hideTabBarRoutes = ['/login', '/register']
+const hideTabBar = computed(() => hideTabBarRoutes.includes(route.path))
 
 const fetchUnreadCount = async () => {
   const token = localStorage.getItem('token')

@@ -113,15 +113,11 @@ const startCountdown = () => {
 }
 
 const handleRegister = async () => {
-  if (!form.phone || !form.password || !form.code) {
-    errorMsg.value = '请填写完整信息'
+  if (!form.phone || !form.password) {
+    errorMsg.value = '请填写手机号和登录密码'
     return
   }
-  if (form.code !== '123456') {
-    errorMsg.value = '验证码错误'
-    return
-  }
-  
+
   loading.value = true
   try {
     const res = await api.post('/auth/register', {
@@ -151,8 +147,9 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
-.auth-container { height: 100%; background: white; padding: 60px 25px; }
-.auth-header { margin-bottom: 30px; }
+.auth-container { height: 100vh; background: white; padding: 40px 25px 30px; overflow-y: auto; box-sizing: border-box; }
+.auth-header { margin-bottom: 24px; }
+.auth-form { padding-bottom: 24px; }
 .back-btn { width: 40px; height: 40px; border-radius: 12px; background: #f5f5f5; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; }
 .auth-header h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; color: var(--text-main); }
 .auth-header p { color: var(--text-sub); font-size: 15px; }
