@@ -70,12 +70,12 @@ const filteredUsers = computed(() => {
 const fetchUsers = async () => {
   loading.value = true
   try {
-    const res = await api.get('/auth/users')
-    if (Array.isArray(res.data)) {
-      users.value = res.data
-    }
+    const res = await api.get('/admin/users', { params: { page: 1, pageSize: 200 } })
+    if (Array.isArray(res.data)) users.value = res.data
+    else if (Array.isArray(res.data?.list)) users.value = res.data.list
+    else users.value = []
   } catch (err) {
-    ElMessage.error('获取用户列表失败')
+    ElMessage.error(err?.response?.data?.message || '获取用户列表失败')
   } finally {
     loading.value = false
   }

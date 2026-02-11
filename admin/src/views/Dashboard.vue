@@ -88,9 +88,16 @@ const recentTickets = ref([])
 
 const fetchStats = async () => {
   try {
-    // 统一从 config/stats 获取（后端已更新 getPlatformStats 并关联到了这个接口）
-    const res = await api.get('/config/stats')
-    stats.value = res.data
+    const res = await api.get('/admin/dashboard/overview')
+    const d = res.data || {}
+    stats.value = {
+      gmv: d.paidAmount || 0,
+      totalCommission: Number((Number(d.paidAmount || 0) - Number(d.refundAmount || 0)).toFixed(2)),
+      totalOrders: d.ordersPending || 0,
+      totalUsers: d.usersTotal || 0,
+      pendingOrders: d.ordersPending || 0,
+      pendingWithdrawals: d.withdrawalsPending || 0,
+    }
   } catch (err) {
     console.error(err)
   }
@@ -98,8 +105,8 @@ const fetchStats = async () => {
 
 const fetchRecentTickets = async () => {
   try {
-    const res = await api.get('/support/admin/all')
-    recentTickets.value = res.data.slice(0, 5)
+    const res = await api.get('/admin/support/tickets', { params: { page: 1, pageSize: 5 } })
+    recentTickets.value = Array.isArray(res.data?.list) ? res.data.list : []
   } catch (err) {
     console.error(err)
   }
