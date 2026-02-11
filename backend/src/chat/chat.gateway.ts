@@ -11,8 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChatMessage } from './entities/chat-message.entity';
-import { UseGuards } from '@nestjs/common';
-import { WsJwtGuard } from '../auth/guards/ws-jwt.guard';
+import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({
   cors: {
@@ -28,13 +27,29 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     @InjectRepository(ChatMessage)
     private readonly messageRepository: Repository<ChatMessage>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async handleConnection(client: Socket) {
-    const userId = client.handshake.query.userId;
-    if (userId) {
-      this.userSockets.set(Number(userId), client.id);
-      console.log(`User ${userId} connected`);
+    const tokenRaw =
+      (client.handshake.auth?.token as string) ||
+      (client.handshake.query?.token as string) ||
+      '';
+    const token = tokenRaw.startsWith('Bearer ') ? tokenRaw.slice(7) : tokenRaw;
+    if (!token) {
+      client.disconnect(true);
+      return;
+    }
+
+    try {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: process.env.JWT_SECRET || 'dev-secret',
+      });
+      client.data.userId = Number(payload.sub);
+      this.userSockets.set(client.data.userId, client.id);
+      console.log(`User ${client.data.userId} connected`);
+    } catch (error) {
+      client.disconnect(true);
     }
   }
 
@@ -53,7 +68,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { receiverId: number; content: string; orderId?: number },
   ) {
-    const senderId = Number(client.handshake.query.userId);
+    const senderId = Number(client.data.userId);
     if (!senderId) return;
 
     const message = this.messageRepository.create({

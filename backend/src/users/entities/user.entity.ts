@@ -60,6 +60,12 @@ export class User {
   @Column({ default: 0 })
   points: number; // 积分
 
+  @Column({ name: 'worker_online', type: 'tinyint', default: 0 })
+  workerOnline: number;
+
+  @Column({ name: 'worker_last_online_at', type: 'datetime', nullable: true })
+  workerLastOnlineAt: Date;
+
   @Column({ name: 'invite_code', unique: true, nullable: true })
   inviteCode: string;
 

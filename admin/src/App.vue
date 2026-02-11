@@ -71,20 +71,37 @@
 <script setup>
 import { onMounted } from 'vue'
 import { Setting, DataLine, User, List, Checked, ArrowDown, Money, ChatDotRound } from '@element-plus/icons-vue'
+import api from './api'
 
 const handleLogout = () => {
   localStorage.removeItem('token')
   window.location.href = 'http://localhost:3001/#/login'
 }
 
-onMounted(() => {
+onMounted(async () => {
   // 从 URL 捕获 Token 并保存
   const params = new URLSearchParams(window.location.search)
-  const token = params.get('token')
+  let token = params.get('token')
+  
   if (token) {
     localStorage.setItem('token', token)
-    // 清除 URL 中的 token，保持美观
     window.history.replaceState({}, document.title, window.location.pathname)
+  }
+
+  // 开发环境保底：如果没有 Token，自动获取一个测试管理员 Token
+  if (!localStorage.getItem('token')) {
+    console.log('Dev Mode: Attempting auto-login...')
+    try {
+      const res = await api.get('/auth/dev-admin-token')
+      if (res.data.access_token) {
+        localStorage.setItem('token', res.data.access_token)
+        console.log('Dev Mode: Auto-login successful.')
+        // 刷新当前页面以触发各个组件的数据加载
+        window.location.reload()
+      }
+    } catch (err) {
+      console.error('Dev Mode: Auto-login failed', err)
+    }
   }
 })
 </script>

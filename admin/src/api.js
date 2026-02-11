@@ -1,8 +1,10 @@
 import axios from 'axios'
 
+// 管理后台统一 API 客户端
+// 后端已经固定在 3005 端口启动，这里与移动端保持一致
 const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  timeout: 5000
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:3005',
+  timeout: 15000, // 给后台接口和 AI 思考更多时间
 })
 
 // 请求拦截器：自动注入 Token

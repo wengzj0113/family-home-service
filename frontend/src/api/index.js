@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:3005',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:3005',
   timeout: 30000, // 增加到 30 秒，确保 AI 响应不会因为前端超时而中断
 });
 

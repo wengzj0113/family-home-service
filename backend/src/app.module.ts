@@ -12,8 +12,13 @@ import { ChatModule } from './chat/chat.module';
 import { CouponsModule } from './coupons/coupons.module';
 import { SupportModule } from './support/support.module';
 import { FilesModule } from './files/files.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { MembershipModule } from './membership/membership.module';
+import { WorkerModule } from './worker/worker.module';
+import { AdminModule } from './admin/admin.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
 
 @Module({
   imports: [
@@ -32,7 +37,7 @@ import { join } from 'path';
       password: process.env.DB_PASS || 'password',
       database: process.env.DB_NAME || 'family_home_service',
       autoLoadEntities: true,
-      synchronize: true, // Only for development
+      synchronize: process.env.DB_SYNCHRONIZE === 'true' && process.env.NODE_ENV !== 'production',
     }),
     AuthModule,
     UsersModule,
@@ -45,6 +50,10 @@ import { join } from 'path';
     CouponsModule,
     SupportModule,
     FilesModule,
+    AnalyticsModule,
+    MembershipModule,
+    WorkerModule,
+    AdminModule,
   ],
 })
 export class AppModule implements NestModule {
@@ -53,7 +62,7 @@ export class AppModule implements NestModule {
       .apply((req, res, next) => {
         console.log(`[Request] ${req.method} ${req.url}`);
         next();
-      })
+      }, RateLimitMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

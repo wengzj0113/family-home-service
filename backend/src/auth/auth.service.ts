@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { UserRole } from '../users/entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -12,7 +13,13 @@ export class AuthService {
 
   async validateUser(phone: string, pass: string): Promise<any> {
     const user = await this.usersService.findOneByPhone(phone);
-    if (user && user.password === pass) { // In production, use bcrypt
+    if (!user) return null;
+
+    const password = user.password || '';
+    const isBcrypt = password.startsWith('$2a$') || password.startsWith('$2b$') || password.startsWith('$2y$');
+    const isValid = isBcrypt ? await bcrypt.compare(pass, password) : password === pass;
+
+    if (isValid) {
       const { password, ...result } = user;
       return result;
     }
@@ -39,7 +46,8 @@ export class AuthService {
       if (inviter) invitedById = inviter.id;
     }
 
-    const user = await this.usersService.create({ phone, password, roles, invitedById });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await this.usersService.create({ phone, password: hashedPassword, roles, invitedById });
     return this.login(user);
   }
 }

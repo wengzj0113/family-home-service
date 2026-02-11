@@ -1,0 +1,55 @@
+services:
+  - type: web
+    name: family-home-service-backend
+    env: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm ci --legacy-peer-deps && npm run build
+    startCommand: npm run start:prod
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: 3306
+      - key: DB_USER
+        sync: false
+      - key: DB_PASS
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SYNCHRONIZE
+        value: "false"
+      - key: CORS_ORIGIN
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: ALIPAY_APP_ID
+        sync: false
+      - key: ALIPAY_PRIVATE_KEY
+        sync: false
+      - key: ALIPAY_PUBLIC_KEY
+        sync: false
+      - key: ALIPAY_NOTIFY_URL
+        sync: false
+      - key: WECHAT_APPID
+        sync: false
+      - key: WECHAT_MCH_ID
+        sync: false
+      - key: WECHAT_SERIAL_NO
+        sync: false
+      - key: WECHAT_API_V3_KEY
+        sync: false
+      - key: WECHAT_PRIVATE_KEY
+        sync: false
+      - key: WECHAT_NOTIFY_URL
+        sync: false

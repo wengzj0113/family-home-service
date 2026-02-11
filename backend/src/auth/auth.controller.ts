@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, Get, Patch, Param } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, Patch, Param, ForbiddenException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserRole } from '../users/entities/user.entity';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -130,5 +130,17 @@ export class AuthController {
   async updateLocation(@Request() req, @Body() body: { lat: number, lng: number }) {
     await this.usersService.updateLocation(req.user.userId, body.lat, body.lng);
     return { success: true };
+  }
+
+  // 开发调试用途：获取第一个管理员的 Token
+  @Get('dev-admin-token')
+  async getDevAdminToken() {
+    if (process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException('生产环境禁用该接口');
+    }
+    const allUsers = await this.usersService.findAll();
+    const adminUser = allUsers.find(u => u.roles.includes(UserRole.ADMIN));
+    if (!adminUser) return { success: false, message: '未找到管理员账号' };
+    return this.authService.login(adminUser);
   }
 }
