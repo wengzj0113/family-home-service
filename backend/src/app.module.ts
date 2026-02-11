@@ -1,6 +1,6 @@
 import { Module, NestModule, RequestMethod, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { OrdersModule } from './orders/orders.module';
@@ -21,6 +21,32 @@ import { join } from 'path';
 import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
 import { SystemController } from './system.controller';
 
+function buildTypeOrmConfig(): TypeOrmModuleOptions {
+  const dbType = (process.env.DB_TYPE || 'mysql').toLowerCase();
+
+  if (dbType === 'sqljs') {
+    return {
+      type: 'sqljs',
+      autoSave: true,
+      location: process.env.DB_NAME || 'data.sqlite',
+      autoLoadEntities: true,
+      // SQL.js 演示模式下自动建表，便于无外部数据库快速启动
+      synchronize: true,
+    };
+  }
+
+  return {
+    type: 'mysql',
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '3306', 10),
+    username: process.env.DB_USER || 'root',
+    password: process.env.DB_PASS || 'password',
+    database: process.env.DB_NAME || 'family_home_service',
+    autoLoadEntities: true,
+    synchronize: process.env.DB_SYNCHRONIZE === 'true' && process.env.NODE_ENV !== 'production',
+  };
+}
+
 @Module({
   controllers: [SystemController],
   imports: [
@@ -31,16 +57,7 @@ import { SystemController } from './system.controller';
       rootPath: join(__dirname, '..', 'uploads'),
       serveRoot: '/uploads',
     }),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT) || 3306,
-      username: process.env.DB_USER || 'root',
-      password: process.env.DB_PASS || 'password',
-      database: process.env.DB_NAME || 'family_home_service',
-      autoLoadEntities: true,
-      synchronize: process.env.DB_SYNCHRONIZE === 'true' && process.env.NODE_ENV !== 'production',
-    }),
+    TypeOrmModule.forRoot(buildTypeOrmConfig()),
     AuthModule,
     UsersModule,
     OrdersModule,
